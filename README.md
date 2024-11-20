@@ -1,14 +1,12 @@
-# VSV – Machine Vision
+# Machine Vision
 
 ## Objective of the course – aims of the course unit:
 To acquaint students with basic principles of interaction of radiation with matter, with instrumentation for applications of computer vision in industry, and with image processing methods used in machine vision applications. 
 
-
 ## At the end of the course, the students will be able to:
-
-1. Select appropriate instrumentation for various machine vision applications,
-2. design appropriate installation of the instrumentation,
-3. create data processing parts of machine vision systems for basic machine vision applications.
+- Select appropriate instrumentation for various machine vision applications
+- Design appropriate installation of the instrumentation
+- create data processing parts of machine vision systems for basic machine vision applications
 
 ## Prerequisites:
 Expected to have basic knowledge of algorithms, programming, and of fundamental concepts in mathematics and physics.
