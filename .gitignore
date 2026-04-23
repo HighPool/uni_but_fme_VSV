@@ -1,6 +1,6 @@
 __pycache__/
 *.pyc
-*.png
+.env
 .vscode/
 .venv/
 insight_projekt/
