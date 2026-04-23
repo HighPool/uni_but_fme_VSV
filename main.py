@@ -1,96 +1,69 @@
 import cv2
 import numpy as np
+import glob
 import os
 
-# ===== PARAMETRE =====
-THRESH_BINARY = 30
-MIN_DEFECT_AREA = 100
-PASS_THRESHOLD = 2.5  # % poškodenia
+DEBUG_DIR = "debug_output"
+os.makedirs(DEBUG_DIR, exist_ok=True)
 
-# ===== CESTY =====
-BASE_DIR = "pics"
-REF_IMAGES = [
-    "clean/clean_Image_1.png",
-    "clean/clean_Image_2.png",
-    "clean/clean_Image_3.png"
-]
+# nový threshold (laditeľný)
+LENGTH_THRESHOLD = 3000   # celková dĺžka čiar
 
-OUTPUT_DIR = "output"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+def analyze(img_path):
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
-# ===== VYTVORENIE REFERENCIE (PRIEMER) =====
-refs = []
-for path in REF_IMAGES:
-    img = cv2.imread(os.path.join(BASE_DIR, path), cv2.IMREAD_GRAYSCALE)
-    refs.append(img)
+    if img is None:
+        print(f"ERROR: {img_path}")
+        return
 
-ref = np.mean(refs, axis=0).astype(np.uint8)
+    # ===== EDGE =====
+    blur = cv2.GaussianBlur(img, (5,5), 0)
+    edges = cv2.Canny(blur, 30, 100)
 
-# ===== ANALÝZA OBRAZU =====
-def analyze_damage(img):
-    img = cv2.resize(img, (ref.shape[1], ref.shape[0]))
+    # ===== HOUGH =====
+    lines = cv2.HoughLinesP(
+        edges,
+        rho=1,
+        theta=np.pi/180,
+        threshold=50,
+        minLineLength=40,
+        maxLineGap=10
+    )
 
-    diff = cv2.absdiff(ref, img)
+    total_length = 0
+    vis = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
 
-    _, thresh = cv2.threshold(diff, THRESH_BINARY, 255, cv2.THRESH_BINARY)
+    if lines is not None:
+        for l in lines:
+            x1, y1, x2, y2 = l[0]
 
-    kernel = np.ones((3,3), np.uint8)
-    clean = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+            length = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+            total_length += length
 
-    damage_pixels = np.sum(clean > 0)
-    total_pixels = clean.size
+            cv2.line(vis, (x1,y1), (x2,y2), (0,0,255), 2)
 
-    damage_percent = (damage_pixels / total_pixels) * 100
-    quality_score = 100 - damage_percent
+    result = "PASS" if total_length < LENGTH_THRESHOLD else "FAIL"
 
-    return clean, damage_percent, quality_score
+    print(f"{img_path} -> length={int(total_length)}, result={result}")
 
-# ===== VIZUALIZÁCIA =====
-def visualize_defects(img, mask):
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    name = img_path.replace("/", "_").replace(".png", "")
 
-    output = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+    cv2.imwrite(f"{DEBUG_DIR}/{name}_edges.png", edges)
+    cv2.imwrite(f"{DEBUG_DIR}/{name}_result.png", vis)
 
-    for c in contours:
-        if cv2.contourArea(c) > MIN_DEFECT_AREA:
-            x, y, w, h = cv2.boundingRect(c)
-            cv2.rectangle(output, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-    return output
+def run_all():
+    images = glob.glob("pics/**/*.png", recursive=True)
 
-# ===== SPRACOVANIE =====
-results = []
+    if len(images) == 0:
+        print("❌ No images found")
+        return
 
-for category in ["clean", "bad", "semibad"]:
-    folder = os.path.join(BASE_DIR, category)
+    print(f"✔ Found {len(images)} images")
 
-    for file in os.listdir(folder):
-        if file.endswith(".png"):
-            path = os.path.join(folder, file)
+    for img in images:
+        analyze(img)
 
-            img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
-            mask, damage, quality = analyze_damage(img)
-
-            if damage > PASS_THRESHOLD:
-                result = "FAIL"
-            else:
-                result = "PASS"
-
-            vis = visualize_defects(img, mask)
-
-            # ===== ULOŽENIE OBRÁZKA =====
-            save_path = os.path.join(OUTPUT_DIR, f"{category}_{file}")
-            cv2.imwrite(save_path, vis)
-
-            print(f"{category}/{file} -> damage={damage:.2f}%, quality={quality:.2f}%, result={result}")
-
-            results.append((category, file, damage, quality, result))
-
-# ===== CSV =====
-with open("results.csv", "w") as f:
-    f.write("category,file,damage_percent,quality_score,result\n")
-    for r in results:
-        f.write(f"{r[0]},{r[1]},{r[2]:.2f},{r[3]:.2f},{r[4]}\n")
-
-print("\nSaved visualizations to /output folder")
+if __name__ == "__main__":
+    run_all()

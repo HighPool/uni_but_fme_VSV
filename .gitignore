@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 *.png
+*.csv
 .env
 .vscode/
 .venv/
