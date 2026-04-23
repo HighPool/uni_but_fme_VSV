@@ -1,0 +1,9 @@
+1. Kamera  - acA2040-90umNIR
+2. Optika  - 16 mm
+3. Osvetlenie:
+           a) Barlight LL-130W120
+           b) Barlight LL-30W120
+4. Filtre  - PRO32-40.5 (Linear Polarized) / Optional
+5. Rozmery - Kamera a fólia         27 cm (vertikálne od stredu fólie)
+           - Osvetlenie a) a fólia  50 cm (od stredu dlhšej strany fólie)
+           - Osvetlenie b) a fólia  26 cm (od stredov kratšej strany fólie)           
