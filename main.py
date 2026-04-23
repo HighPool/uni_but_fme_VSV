@@ -3,9 +3,9 @@ import numpy as np
 import os
 
 # ===== PARAMETRE =====
-THRESH_DIFF = 15
+THRESH_DIFF = 12
 THRESH_BINARY = 30
-MIN_DEFECT_AREA = 50
+MIN_DEFECT_AREA = 100
 
 # ===== CESTY =====
 BASE_DIR = "pics"
@@ -36,7 +36,7 @@ def process_image(path):
     defects = [c for c in contours if cv2.contourArea(c) > MIN_DEFECT_AREA]
 
     # rozhodnutie
-    if score > THRESH_DIFF or len(defects) > 0:
+    if score > THRESH_DIFF or len(defects) > 10:
         result = "FAIL"
     else:
         result = "PASS"
@@ -47,7 +47,7 @@ def process_image(path):
 # ===== SPRACOVANIE =====
 results = []
 
-for category in ["clean", "bad", "semibad", "polar"]:
+for category in ["clean", "bad", "semibad"]:
     folder = os.path.join(BASE_DIR, category)
 
     for file in os.listdir(folder):
