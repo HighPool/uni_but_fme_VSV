@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.png
+.vscode/
+.venv/
+insight_projekt/
+seznam_hardware.xlsx
